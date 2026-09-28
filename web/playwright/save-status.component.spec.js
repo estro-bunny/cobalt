@@ -104,3 +104,33 @@ test("browser progress stays synchronized when transitioning from DOWNLOADING to
     await setProgress(page, "encoding", 83);
     await expectProgress(page, 83, "ENCODING");
 });
+
+test("browser DOWNLOADING without progress renders an indeterminate bar without percentage or aria-valuenow", async ({ page }) => {
+    await mountProgressStory(page);
+
+    await page.evaluate(() => window.setSaveStatusProgress({ nextMode: "downloading", nextProgress: undefined }));
+
+    await expect(page.getByText("DOWNLOADING", { exact: true })).toBeVisible();
+    await expect(page.getByText(/% ·/)).not.toBeVisible();
+
+    const bar = page.getByRole("progressbar");
+    await expect(bar).toHaveClass(/indeterminate/);
+    await expect(bar).not.toHaveAttribute("aria-valuenow");
+    await expect(bar.locator("span")).toHaveCount(0);
+    await expect(bar.locator("::before")).toHaveCount(0);
+});
+
+test("browser ENCODING without progress renders an indeterminate bar without percentage or aria-valuenow", async ({ page }) => {
+    await mountProgressStory(page);
+
+    await page.evaluate(() => window.setSaveStatusProgress({ nextMode: "encoding", nextProgress: undefined }));
+
+    await expect(page.getByText("ENCODING", { exact: true })).toBeVisible();
+    await expect(page.getByText(/% ·/)).not.toBeVisible();
+
+    const bar = page.getByRole("progressbar");
+    await expect(bar).toHaveClass(/indeterminate/);
+    await expect(bar).not.toHaveAttribute("aria-valuenow");
+    await expect(bar.locator("span")).toHaveCount(0);
+    await expect(bar.locator("::before")).toHaveCount(0);
+});
