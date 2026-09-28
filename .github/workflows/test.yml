@@ -40,3 +40,18 @@ jobs:
           node-version: 'lts/*'
       - uses: pnpm/action-setup@v4
       - run: .github/test.sh api
+
+  test-web-browser:
+    name: web browser tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm --dir web exec playwright install --with-deps chromium
+      - name: Run browser tests
+        run: pnpm --dir web run test:save-status:browser
