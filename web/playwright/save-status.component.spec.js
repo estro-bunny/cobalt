@@ -58,3 +58,21 @@ test("browser progress keeps ENCODING label, bar width, and aria-valuenow synchr
         await expectProgress(page, progress, "ENCODING");
     }
 });
+
+test("browser progress clamps DOWNLOADING values below 0% and above 100% consistently", async ({ page }) => {
+    await mountProgressStory(page);
+
+    for (const [input, expected] of [[-25, 0], [125, 100]]) {
+        await setProgress(page, "downloading", input);
+        await expectProgress(page, expected, "DOWNLOADING");
+    }
+});
+
+test("browser progress clamps ENCODING values below 0% and above 100% consistently", async ({ page }) => {
+    await mountProgressStory(page);
+
+    for (const [input, expected] of [[-25, 0], [125, 100]]) {
+        await setProgress(page, "encoding", input);
+        await expectProgress(page, expected, "ENCODING");
+    }
+});
