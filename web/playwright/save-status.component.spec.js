@@ -133,3 +133,29 @@ test("browser ENCODING without progress renders an indeterminate bar without per
     await expect(bar.locator("span")).toHaveCount(0);
     await expect(bar.locator("::before")).toHaveCount(0);
 });
+
+test("browser indeterminate progress becomes determinate when DOWNLOADING and ENCODING receive progress", async ({ page }) => {
+    await mountProgressStory(page);
+
+    await setProgress(page, "downloading", undefined);
+    let bar = page.getByRole("progressbar");
+    await expect(bar).toHaveClass(/indeterminate/);
+    await expect(bar).not.toHaveAttribute("aria-valuenow");
+    await expect(page.getByText(/% ·/)).not.toBeVisible();
+
+    await setProgress(page, "downloading", 42);
+    await expectProgress(page, 42, "DOWNLOADING");
+    bar = page.getByRole("progressbar");
+    await expect(bar).not.toHaveClass(/indeterminate/);
+
+    await setProgress(page, "encoding", undefined);
+    bar = page.getByRole("progressbar");
+    await expect(bar).toHaveClass(/indeterminate/);
+    await expect(bar).not.toHaveAttribute("aria-valuenow");
+    await expect(page.getByText(/% ·/)).not.toBeVisible();
+
+    await setProgress(page, "encoding", 68);
+    await expectProgress(page, 68, "ENCODING");
+    bar = page.getByRole("progressbar");
+    await expect(bar).not.toHaveClass(/indeterminate/);
+});
