@@ -1,6 +1,6 @@
 <script>
     import { t } from "$lib/i18n/translations";
-    import { link } from "$lib/state/omnibox";
+    import { link, downloadButtonState } from "$lib/state/omnibox";
 
     import Omnibox from "$components/save/Omnibox.svelte";
     import Meowbalt from "$components/misc/Meowbalt.svelte";
@@ -59,22 +59,24 @@
             </div>
         </main>
 
-        <div class="eb-save-status" aria-live="polite">
-            {#if $link}
+        <div class="eb-save-status" class:processing={$downloadButtonState === "think"} class:downloading={$downloadButtonState === "check"} class:complete={$downloadButtonState === "done"} class:error={$downloadButtonState === "error"} aria-live="polite">
+            {#if $downloadButtonState === "think"}
+                <span class="eb-status-icon">◆</span>
+                <span class="eb-status-copy"><strong>PROCESSING</strong><small>the burrow is figuring it out...</small></span>
+            {:else if $downloadButtonState === "check"}
                 <span class="eb-status-icon">◉</span>
-                <span class="eb-status-copy">
-                    <strong>LINK DETECTED</strong>
-                    <small>ready for the burrow</small>
-                </span>
+                <span class="eb-status-copy"><strong>DOWNLOADING</strong><small>bringing it home from the chaos...</small></span>
+            {:else if $downloadButtonState === "done"}
+                <span class="eb-status-icon">✓</span>
+                <span class="eb-status-copy"><strong>COMPLETE</strong><small>successfully burrowed</small></span>
+            {:else if $downloadButtonState === "error"}
+                <span class="eb-status-icon">×</span>
+                <span class="eb-status-copy"><strong>ERROR</strong><small>something exploded in the burrow · please try again</small></span>
             {:else}
                 <span class="eb-status-icon">●</span>
-                <span class="eb-status-copy">
-                    <strong>READY</strong>
-                    <small>waiting for something chaotic</small>
-                </span>
+                <span class="eb-status-copy"><strong>READY</strong><small>waiting for something chaotic</small></span>
             {/if}
-        </div>
-    </section>
+        </div>    </section>
 
     <SupportedServices />
 
@@ -361,6 +363,11 @@
         flex-direction: column;
         gap: 2px;
     }
+
+    .eb-save-status.processing .eb-status-icon { color: var(--eb-blue); }
+    .eb-save-status.downloading .eb-status-icon { color: var(--eb-pink); }
+    .eb-save-status.complete .eb-status-icon { color: var(--eb-success); }
+    .eb-save-status.error .eb-status-icon { color: var(--eb-danger); }
 
     .eb-status-copy strong {
         color: var(--eb-white);
