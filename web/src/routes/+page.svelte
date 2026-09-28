@@ -31,13 +31,30 @@
                 : 0
     );
 
-    let activeFetchTask = $derived.by(() => {
+    let activeFetchProgress = $derived.by(() => {
         if (activeQueueItem?.state !== "running") return undefined;
 
-        return activeQueueItem.pipeline
-            .filter((worker) => worker.worker === "fetch")
-            .map((worker) => $currentTasks[worker.workerId])
-            .find(Boolean);
+        const fetchWorkers = activeQueueItem.pipeline.filter((worker) => worker.worker === "fetch");
+        if (!fetchWorkers.length) return undefined;
+
+        let total = 0;
+        let reported = false;
+
+        for (const worker of fetchWorkers) {
+            if (activeQueueItem.pipelineResults[worker.workerId]) {
+                total += 100;
+                reported = true;
+                continue;
+            }
+
+            const percentage = $currentTasks[worker.workerId]?.progress?.percentage;
+            if (percentage !== undefined) {
+                total += percentage;
+                reported = true;
+            }
+        }
+
+        return reported ? Math.round(total / fetchWorkers.length) : undefined;
     });
 
     let saveState = $derived(
@@ -45,7 +62,7 @@
             ? "error"
             : activeQueueItem?.state === "done"
                 ? "done"
-                : activeFetchTask
+                : activeFetchProgress !== undefined
                     ? "check"
                     : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
                         ? "think"
@@ -134,8 +151,8 @@
                 <span class="eb-status-copy">
                     <strong>DOWNLOADING</strong>
                     <small>
-                        {#if activeFetchTask?.progress?.percentage !== undefined}
-                            {Math.round(activeFetchTask.progress.percentage)}% · bringing it home from the chaos...
+                        {#if activeFetchProgress !== undefined}
+                            {activeFetchProgress}% · bringing it home from the chaos...
                         {:else}
                             bringing it home from the chaos...
                         {/if}
@@ -161,9 +178,9 @@
                 </div>
             {:else if saveState === "think" && activeQueueItem?.state === "waiting"}
                 <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Waiting to process"></div>
-            {:else if saveState === "check" && activeFetchTask?.progress?.percentage !== undefined}
-                <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(activeFetchTask.progress.percentage)}>
-                    <span style:width={Math.round(activeFetchTask.progress.percentage) + "%"}></span>
+            {:else if saveState === "check" && activeFetchProgress !== undefined}
+                <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={activeFetchProgress}>
+                    <span style:width={activeFetchProgress + "%"}></span>
                 </div>
             {:else if saveState === "check"}
                 <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Downloading"></div>
