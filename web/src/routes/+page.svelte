@@ -10,6 +10,7 @@
     import Omnibox from "$components/save/Omnibox.svelte";
     import Meowbalt from "$components/misc/Meowbalt.svelte";
     import SupportedServices from "$components/save/SupportedServices.svelte";
+    import SaveStatus from "$components/save/SaveStatus.svelte";
 
     let retrying = $state(false);
 
@@ -155,53 +156,15 @@
             </div>
         </main>
 
-        <div class="eb-save-status" class:processing={saveState === "think"} class:downloading={saveState === "check"} class:complete={saveState === "done"} class:error={saveState === "error"} aria-live="polite">
-            {#if saveState === "think"}
-                <span class="eb-status-icon">◆</span>
-                <span class="eb-status-copy">
-                    <strong>{resolveProcessingLabel(activeProcessingTask?.type)}</strong>
-                    <small>{activeQueueItem?.state === "running" && queueProgress > 0 ? queueProgress + "% · the burrow is working..." : "the burrow is figuring it out..."}</small>
-                </span>
-            {:else if saveState === "check"}
-                <span class="eb-status-icon">◉</span>
-                <span class="eb-status-copy">
-                    <strong>DOWNLOADING</strong>
-                    <small>
-                        {#if activeFetchProgress !== undefined}
-                            {activeFetchProgress}% · bringing it home from the chaos...
-                        {:else}
-                            bringing it home from the chaos...
-                        {/if}
-                    </small>
-                </span>
-            {:else if saveState === "done"}
-                <span class="eb-status-icon">✓</span>
-                <span class="eb-status-copy"><strong>COMPLETE</strong><small>successfully burrowed</small></span>
-            {:else if saveState === "error"}
-                <span class="eb-status-icon">×</span>
-                <span class="eb-status-copy"><strong>ERROR</strong><small>something exploded in the burrow · please try again</small></span>
-                <button class="eb-retry-button" type="button" onclick={retrySave} disabled={retrying || !$link} aria-label="Retry save">
-                    {retrying ? "RETRYING..." : "RETRY"}
-                </button>
-            {:else}
-                <span class="eb-status-icon">●</span>
-                <span class="eb-status-copy"><strong>READY</strong><small>waiting for something chaotic</small></span>
-            {/if}
-
-            {#if saveState === "think" && activeQueueItem?.state === "running"}
-                <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={queueProgress}>
-                    <span style:width={queueProgress + "%"}></span>
-                </div>
-            {:else if saveState === "think" && activeQueueItem?.state === "waiting"}
-                <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Waiting to process"></div>
-            {:else if saveState === "check" && activeFetchProgress !== undefined}
-                <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={activeFetchProgress}>
-                    <span style:width={activeFetchProgress + "%"}></span>
-                </div>
-            {:else if saveState === "check"}
-                <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Downloading"></div>
-            {/if}
-        </div>    </section>
+        <SaveStatus
+            state={saveState}
+            processingLabel={resolveProcessingLabel(activeProcessingTask?.type)}
+            processingProgress={saveState === "think" && activeQueueItem?.state === "running" ? queueProgress : undefined}
+            fetchProgress={saveState === "check" ? activeFetchProgress : undefined}
+            retrying={retrying}
+            onRetry={retrySave}
+        />
+ </section>
 
     <SupportedServices />
 
