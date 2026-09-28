@@ -31,14 +31,25 @@
                 : 0
     );
 
+    let activeFetchTask = $derived.by(() => {
+        if (activeQueueItem?.state !== "running") return undefined;
+
+        return activeQueueItem.pipeline
+            .filter((worker) => worker.worker === "fetch")
+            .map((worker) => $currentTasks[worker.workerId])
+            .find(Boolean);
+    });
+
     let saveState = $derived(
         activeQueueItem?.state === "error"
             ? "error"
             : activeQueueItem?.state === "done"
                 ? "done"
-                : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
-                    ? "think"
-                    : $downloadButtonState
+                : activeFetchTask
+                    ? "check"
+                    : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
+                        ? "think"
+                        : $downloadButtonState
     );
 
     const retrySave = async () => {
@@ -120,7 +131,16 @@
                 </span>
             {:else if saveState === "check"}
                 <span class="eb-status-icon">◉</span>
-                <span class="eb-status-copy"><strong>DOWNLOADING</strong><small>bringing it home from the chaos...</small></span>
+                <span class="eb-status-copy">
+                    <strong>DOWNLOADING</strong>
+                    <small>
+                        {#if activeFetchTask?.progress?.percentage !== undefined}
+                            {Math.round(activeFetchTask.progress.percentage)}% · bringing it home from the chaos...
+                        {:else}
+                            bringing it home from the chaos...
+                        {/if}
+                    </small>
+                </span>
             {:else if saveState === "done"}
                 <span class="eb-status-icon">✓</span>
                 <span class="eb-status-copy"><strong>COMPLETE</strong><small>successfully burrowed</small></span>
@@ -141,6 +161,10 @@
                 </div>
             {:else if saveState === "think" && activeQueueItem?.state === "waiting"}
                 <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Waiting to process"></div>
+            {:else if saveState === "check" && activeFetchTask?.progress?.percentage !== undefined}
+                <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(activeFetchTask.progress.percentage)}>
+                    <span style:width={Math.round(activeFetchTask.progress.percentage) + "%"}></span>
+                </div>
             {:else if saveState === "check"}
                 <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Downloading"></div>
             {/if}
