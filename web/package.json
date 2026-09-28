@@ -12,7 +12,8 @@
         "test:save-state": "node --test tests/save-state.test.js",
         "test:save-status": "node --test tests/save-status.component.test.js",
         "test:save-status:browser": "playwright test --config=playwright.config.js",
-        "test:save-status:browser:install": "playwright install chromium"
+        "test:save-status:browser:install": "playwright install chromium",
+        "test:save-status:browser:smoke": "pnpm run test:save-status:browser:install && pnpm run test:save-status:browser"
     },
     "license": "CC-BY-NC-SA-4.0",
     "engines": {
