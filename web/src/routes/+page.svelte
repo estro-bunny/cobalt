@@ -5,6 +5,7 @@
     import { currentTasks } from "$lib/state/task-manager/current-tasks";
     import { getProgress } from "$lib/task-manager/queue";
     import { savingHandler } from "$lib/api/saving-handler";
+    import { resolveSaveState } from "$lib/save-state.js";
 
     import Omnibox from "$components/save/Omnibox.svelte";
     import Meowbalt from "$components/misc/Meowbalt.svelte";
@@ -76,21 +77,12 @@
     });
 
     let saveState = $derived(
-        retrying
-            ? activeFetchTask
-                ? "check"
-                : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
-                    ? "think"
-                    : "think"
-            : activeQueueItem?.state === "error"
-            ? "error"
-            : activeQueueItem?.state === "done"
-                ? "done"
-                : activeFetchTask
-                    ? "check"
-                    : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
-                        ? "think"
-                        : $downloadButtonState
+        resolveSaveState({
+            retrying,
+            queueState: activeQueueItem?.state,
+            activeFetch: Boolean(activeFetchTask),
+            buttonState: $downloadButtonState,
+        })
     );
 
     const retrySave = async () => {
