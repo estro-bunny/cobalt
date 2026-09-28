@@ -9,7 +9,8 @@
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-        "test:save-state": "node --test tests/save-state.test.js"
+        "test:save-state": "node --test tests/save-state.test.js",
+        "test:save-status": "node --test tests/save-status.component.test.js"
     },
     "license": "CC-BY-NC-SA-4.0",
     "engines": {
