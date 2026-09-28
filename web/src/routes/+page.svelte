@@ -12,9 +12,16 @@
 
     let retrying = $state(false);
 
-    let activeQueueItem = $derived(
-        Object.values($queue).find((item) => item.originalRequest?.url === $link)
-    );
+    let activeQueueItem = $derived(() => {
+        const matchingItems = Object.values($queue)
+            .filter((item) => item.originalRequest?.url === $link);
+
+        if ($downloadButtonState === "think" || $downloadButtonState === "check") {
+            return matchingItems.find((item) => item.state === "waiting" || item.state === "running");
+        }
+
+        return matchingItems.find((item) => item.state === "error" || item.state === "done");
+    });
 
     let queueProgress = $derived(
         activeQueueItem?.state === "running"
