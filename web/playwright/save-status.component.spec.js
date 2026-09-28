@@ -76,3 +76,17 @@ test("browser progress clamps ENCODING values below 0% and above 100% consistent
         await expectProgress(page, expected, "ENCODING");
     }
 });
+
+test("browser progress updates DOWNLOADING and ENCODING on every live change", async ({ page }) => {
+    await mountProgressStory(page);
+
+    for (const progress of [3, 18, 47, 62, 91]) {
+        await setProgress(page, "downloading", progress);
+        await expectProgress(page, progress, "DOWNLOADING");
+    }
+
+    for (const progress of [7, 29, 53, 78, 96]) {
+        await setProgress(page, "encoding", progress);
+        await expectProgress(page, progress, "ENCODING");
+    }
+});
