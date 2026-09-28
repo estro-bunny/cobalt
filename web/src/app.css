@@ -472,3 +472,110 @@ tr th:first-child {
         transform: rotate(360deg);
     }
 }
+
+
+/* ─────────────────────────────────────────────
+   ESTROBUNNY // visual layer
+   Keeps Cobalt's functional surface intact.
+   ───────────────────────────────────────────── */
+
+:root {
+    --eb-pink: #ff3cac;
+    --eb-pink-hot: #ff1493;
+    --eb-blue: #5ce1ff;
+    --eb-blue-deep: #3aa9ff;
+    --eb-black: #09070d;
+    --eb-panel: rgba(20, 13, 24, 0.82);
+    --eb-panel-strong: rgba(29, 16, 34, 0.94);
+    --eb-line: rgba(255, 60, 172, 0.22);
+    --eb-glow: 0 0 24px rgba(255, 60, 172, 0.18);
+}
+
+[data-theme="dark"] {
+    --primary: var(--eb-black);
+    --secondary: #fff4fb;
+    --gray: #b89eb2;
+    --blue: var(--eb-blue);
+    --button: #18101c;
+    --button-hover: #261426;
+    --button-press: #32182d;
+    --button-text: #fff4fb;
+    --button-stroke: var(--eb-line);
+    --button-elevated: #211522;
+    --button-elevated-hover: #2d1a30;
+    --button-elevated-press: #381d39;
+    --sidebar-bg: #0d0811;
+    --sidebar-highlight: var(--eb-pink);
+    --sidebar-stroke: rgba(255, 255, 255, 0.06);
+    --content-border: rgba(255, 60, 172, 0.13);
+    --input-border: #54334f;
+    --toggle-bg-enabled: var(--eb-pink);
+}
+
+#cobalt {
+    background:
+        radial-gradient(circle at 82% 18%, rgba(92, 225, 255, 0.08), transparent 28%),
+        radial-gradient(circle at 22% 78%, rgba(255, 60, 172, 0.08), transparent 30%);
+}
+
+#content {
+    position: relative;
+    background:
+        radial-gradient(circle at 50% 38%, rgba(255, 60, 172, 0.055), transparent 42%),
+        var(--primary);
+}
+
+#content::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.22;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+
+button, .button {
+    border: 1px solid var(--button-stroke);
+    transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+@media (hover: hover) {
+    .button:hover {
+        border-color: rgba(255, 60, 172, 0.52);
+        box-shadow: 0 0 0 1px rgba(255, 60, 172, 0.08) inset, var(--eb-glow);
+        transform: translateY(-1px);
+    }
+}
+
+.button.active,
+.button.color {
+    background: linear-gradient(135deg, var(--eb-pink), var(--eb-blue-deep));
+    color: #09070d;
+    border-color: transparent;
+    box-shadow: 0 0 22px rgba(255, 60, 172, 0.22);
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible {
+    outline-color: var(--eb-blue);
+    box-shadow: 0 0 0 3px rgba(92, 225, 255, 0.14);
+}
+
+[data-reduce-motion="true"] button,
+[data-reduce-motion="true"] .button {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
