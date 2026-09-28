@@ -804,7 +804,7 @@ packages:
     engines: {node: '>=20'}
 
   playwright-core@1.63.0:
-    resolution: {integrity: sha512-rYCsBF/M5HjUch62HLzSUrlAiC8cNpJLunB69dy7c+/WAQyP4qKBjz060vwz9tLcybsWFLnoM3hXRTxHwwNwcw==}
+    resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
     engines: {node: '>=20'}
     hasBin: true
 
