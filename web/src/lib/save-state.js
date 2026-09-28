@@ -31,3 +31,10 @@ export const resolveSaveState = ({
 
     return buttonState ?? "think";
 };
+
+/**
+ * @param {string | undefined} workerType
+ * @returns {"PROCESSING" | "ENCODING"}
+ */
+export const resolveProcessingLabel = (workerType) =>
+    workerType === "encode" ? "ENCODING" : "PROCESSING";
