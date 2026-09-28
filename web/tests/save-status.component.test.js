@@ -160,3 +160,53 @@ test("ENCODING keeps visible percentage and aria-valuenow synchronized at 100%",
     assert.match(html, /aria-valuenow="100"/);
     assert.doesNotMatch(html, /indeterminate/);
 });
+
+test("DOWNLOADING progress updates keep the visible percentage and aria-valuenow synchronized", () => {
+    const progressSamples = [0, 17, 54, 100];
+
+    for (const progress of progressSamples) {
+        const html = renderStatus({
+            state: "check",
+            fetchProgress: progress,
+        });
+
+        assert.match(text(html), new RegExp(`${progress}% · bringing it home from the chaos`));
+        assert.match(html, new RegExp(`aria-valuenow="${progress}"`));
+        assert.doesNotMatch(html, /class="eb-progress-track indeterminate"/);
+    }
+});
+
+test("ENCODING progress updates keep the visible percentage and aria-valuenow synchronized", () => {
+    const progressSamples = [0, 23, 68, 100];
+
+    for (const progress of progressSamples) {
+        const html = renderStatus({
+            state: "think",
+            processingLabel: "ENCODING",
+            processingProgress: progress,
+        });
+
+        assert.match(text(html), new RegExp(`${progress}% · the burrow is working`));
+        assert.match(html, new RegExp(`aria-valuenow="${progress}"`));
+        assert.doesNotMatch(html, /class="eb-progress-track indeterminate"/);
+    }
+});
+
+test("progress values are rendered as determinate values at the boundaries", () => {
+    for (const [state, prop] of [
+        ["check", "fetchProgress"],
+        ["think", "processingProgress"],
+    ]) {
+        for (const progress of [0, 100]) {
+            const html = renderStatus({
+                state,
+                ...(state === "think" ? { processingLabel: "ENCODING" } : {}),
+                [prop]: progress,
+            });
+
+            assert.match(html, /role="progressbar"/);
+            assert.match(html, new RegExp(`aria-valuenow="${progress}"`));
+            assert.doesNotMatch(html, /class="eb-progress-track indeterminate"/);
+        }
+    }
+});
