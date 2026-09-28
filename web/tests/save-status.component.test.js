@@ -89,3 +89,74 @@ test("COMPLETE shows COMPLETE and no stale progress bar", () => {
     assert.doesNotMatch(text(html), /ERROR/);
     assert.doesNotMatch(html, /role="progressbar"/);
 });
+
+test("DOWNLOADING without progress renders indeterminate progress", () => {
+    const html = renderStatus({
+        state: "check",
+    });
+
+    assert.match(text(html), /DOWNLOADING/);
+    assert.match(html, /class="eb-progress-track indeterminate"/);
+    assert.match(html, /aria-label="Downloading"/);
+    assert.doesNotMatch(html, /aria-valuenow=/);
+});
+
+test("ENCODING without progress renders indeterminate progress", () => {
+    const html = renderStatus({
+        state: "think",
+        processingLabel: "ENCODING",
+    });
+
+    assert.match(text(html), /ENCODING/);
+    assert.match(html, /class="eb-progress-track indeterminate"/);
+    assert.match(html, /aria-label="Waiting to process"/);
+    assert.doesNotMatch(html, /aria-valuenow=/);
+});
+
+test("DOWNLOADING keeps visible percentage and aria-valuenow synchronized at 0%", () => {
+    const html = renderStatus({
+        state: "check",
+        fetchProgress: 0,
+    });
+
+    assert.match(text(html), /0% · bringing it home from the chaos/);
+    assert.match(html, /aria-valuenow="0"/);
+    assert.doesNotMatch(html, /indeterminate/);
+});
+
+test("DOWNLOADING keeps visible percentage and aria-valuenow synchronized at 100%", () => {
+    const html = renderStatus({
+        state: "check",
+        fetchProgress: 100,
+    });
+
+    assert.match(text(html), /100% · bringing it home from the chaos/);
+    assert.match(html, /aria-valuenow="100"/);
+    assert.doesNotMatch(html, /indeterminate/);
+});
+
+test("ENCODING keeps visible percentage and aria-valuenow synchronized at 0%", () => {
+    const html = renderStatus({
+        state: "think",
+        processingLabel: "ENCODING",
+        processingProgress: 0,
+    });
+
+    assert.match(text(html), /ENCODING/);
+    assert.match(text(html), /0% · the burrow is working/);
+    assert.match(html, /aria-valuenow="0"/);
+    assert.doesNotMatch(html, /indeterminate/);
+});
+
+test("ENCODING keeps visible percentage and aria-valuenow synchronized at 100%", () => {
+    const html = renderStatus({
+        state: "think",
+        processingLabel: "ENCODING",
+        processingProgress: 100,
+    });
+
+    assert.match(text(html), /ENCODING/);
+    assert.match(text(html), /100% · the burrow is working/);
+    assert.match(html, /aria-valuenow="100"/);
+    assert.doesNotMatch(html, /indeterminate/);
+});
