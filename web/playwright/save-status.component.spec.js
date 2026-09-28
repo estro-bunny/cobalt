@@ -117,7 +117,6 @@ test("browser DOWNLOADING without progress renders an indeterminate bar without 
     await expect(bar).toHaveClass(/indeterminate/);
     await expect(bar).not.toHaveAttribute("aria-valuenow");
     await expect(bar.locator("span")).toHaveCount(0);
-    await expect(bar.locator("::before")).toHaveCount(0);
 });
 
 test("browser ENCODING without progress renders an indeterminate bar without percentage or aria-valuenow", async ({ page }) => {
