@@ -31,6 +31,24 @@
                 : 0
     );
 
+    let activeFetchTask = $derived.by(() => {
+        if (activeQueueItem?.state !== "running") return undefined;
+
+        return activeQueueItem.pipeline
+            .filter((worker) => worker.worker === "fetch")
+            .map((worker) => $currentTasks[worker.workerId])
+            .find((task) => task?.type === "fetch");
+    });
+
+    let activeProcessingTask = $derived.by(() => {
+        if (activeQueueItem?.state !== "running") return undefined;
+
+        return activeQueueItem.pipeline
+            .filter((worker) => worker.worker !== "fetch")
+            .map((worker) => $currentTasks[worker.workerId])
+            .find(Boolean);
+    });
+
     let activeFetchProgress = $derived.by(() => {
         if (activeQueueItem?.state !== "running") return undefined;
 
@@ -62,7 +80,7 @@
             ? "error"
             : activeQueueItem?.state === "done"
                 ? "done"
-                : activeFetchProgress !== undefined
+                : activeFetchTask
                     ? "check"
                     : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
                         ? "think"
@@ -143,7 +161,7 @@
             {#if saveState === "think"}
                 <span class="eb-status-icon">◆</span>
                 <span class="eb-status-copy">
-                    <strong>PROCESSING</strong>
+                    <strong>{activeProcessingTask?.type === "encode" ? "ENCODING" : "PROCESSING"}</strong>
                     <small>{activeQueueItem?.state === "running" && queueProgress > 0 ? queueProgress + "% · the burrow is working..." : "the burrow is figuring it out..."}</small>
                 </span>
             {:else if saveState === "check"}
