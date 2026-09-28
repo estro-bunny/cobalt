@@ -539,10 +539,7 @@
             animation-iteration-count: 1 !important;
         }
 
-        @media (hover: hover) {
-            #cobalt-save :global(#input-container):hover {
-                transform: none;
-            }
+        #cobalt-save :global(#input-container):hover {
+            transform: none;
         }
-    }
-</style>
+    }</style>
