@@ -90,3 +90,17 @@ test("browser progress updates DOWNLOADING and ENCODING on every live change", a
         await expectProgress(page, progress, "ENCODING");
     }
 });
+
+test("browser progress stays synchronized when transitioning from DOWNLOADING to ENCODING", async ({ page }) => {
+    await mountProgressStory(page);
+
+    await setProgress(page, "downloading", 64);
+    await expectProgress(page, 64, "DOWNLOADING");
+
+    await setProgress(page, "encoding", 37);
+    await expectProgress(page, 37, "ENCODING");
+    await expect(page.getByText("DOWNLOADING", { exact: true })).not.toBeVisible();
+
+    await setProgress(page, "encoding", 83);
+    await expectProgress(page, 83, "ENCODING");
+});
