@@ -1,8 +1,10 @@
 import { mount, unmount } from "svelte";
 import SaveStatusRetry from "./stories/SaveStatusRetry.svelte";
+import SaveStatusProgress from "./stories/SaveStatusProgress.svelte";
 
 const stories = {
     "SaveStatus/Retry": SaveStatusRetry,
+    "SaveStatus/Progress": SaveStatusProgress,
 };
 
 let current;
