@@ -210,3 +210,39 @@ test("progress values are rendered as determinate values at the boundaries", () 
         }
     }
 });
+
+test("ERROR retry button is enabled and labeled RETRY when idle", () => {
+    const html = renderStatus({
+        state: "error",
+        retrying: false,
+    });
+
+    assert.match(html, /<button[^>]*class="eb-retry-button"[^>]*type="button"/);
+    assert.match(text(html), /RETRY/);
+    assert.doesNotMatch(html, /<button[^>]*disabled/);
+    assert.match(html, /aria-label="Retry save"/);
+});
+
+test("ERROR retry button is disabled and labeled RETRYING during retry", () => {
+    const html = renderStatus({
+        state: "error",
+        retrying: true,
+    });
+
+    assert.match(html, /<button[^>]*disabled/);
+    assert.match(text(html), /RETRYING/);
+    assert.match(html, /aria-label="Retry save"/);
+});
+
+test("non-error states do not expose a retry button", () => {
+    for (const state of ["think", "check", "done", "ready"]) {
+        const html = renderStatus({
+            state,
+            processingLabel: state === "think" ? "PROCESSING" : undefined,
+            processingProgress: state === "think" ? 42 : undefined,
+            fetchProgress: state === "check" ? 42 : undefined,
+        });
+
+        assert.doesNotMatch(html, /eb-retry-button/);
+    }
+});
