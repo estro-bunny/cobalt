@@ -16,7 +16,7 @@
         const matchingItems = Object.values($queue)
             .filter((item) => item.originalRequest?.url === $link);
 
-        if ($downloadButtonState === "think" || $downloadButtonState === "check") {
+        if (retrying || $downloadButtonState === "think" || $downloadButtonState === "check") {
             return matchingItems.find((item) => item.state === "waiting" || item.state === "running");
         }
 
@@ -76,7 +76,13 @@
     });
 
     let saveState = $derived(
-        activeQueueItem?.state === "error"
+        retrying
+            ? activeFetchTask
+                ? "check"
+                : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
+                    ? "think"
+                    : "think"
+            : activeQueueItem?.state === "error"
             ? "error"
             : activeQueueItem?.state === "done"
                 ? "done"
