@@ -8,8 +8,11 @@
         onRetry,
     } = $props();
 
-    const hasProcessingProgress = $derived(processingProgress !== undefined);
-    const hasFetchProgress = $derived(fetchProgress !== undefined);
+    const clampProgress = (value) => Math.min(100, Math.max(0, value));
+    const resolvedProcessingProgress = $derived(processingProgress === undefined ? undefined : clampProgress(processingProgress));
+    const resolvedFetchProgress = $derived(fetchProgress === undefined ? undefined : clampProgress(fetchProgress));
+    const hasProcessingProgress = $derived(resolvedProcessingProgress !== undefined);
+    const hasFetchProgress = $derived(resolvedFetchProgress !== undefined);
 </script>
 
 <div
@@ -26,7 +29,7 @@
             <strong>{processingLabel}</strong>
             <small>
                 {#if hasProcessingProgress}
-                    {processingProgress}% · the burrow is working...
+                    {resolvedProcessingProgress}% · the burrow is working...
                 {:else}
                     the burrow is figuring it out...
                 {/if}
@@ -38,7 +41,7 @@
             <strong>DOWNLOADING</strong>
             <small>
                 {#if hasFetchProgress}
-                    {fetchProgress}% · bringing it home from the chaos...
+                    {resolvedFetchProgress}% · bringing it home from the chaos...
                 {:else}
                     bringing it home from the chaos...
                 {/if}
@@ -59,14 +62,14 @@
     {/if}
 
     {#if state === "think" && hasProcessingProgress}
-        <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={processingProgress}>
-            <span style:width={processingProgress + "%"}></span>
+        <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={resolvedProcessingProgress}>
+            <span style:width={resolvedProcessingProgress + "%"}></span>
         </div>
     {:else if state === "think" && !hasProcessingProgress}
         <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Waiting to process"></div>
     {:else if state === "check" && hasFetchProgress}
-        <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={fetchProgress}>
-            <span style:width={fetchProgress + "%"}></span>
+        <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={resolvedFetchProgress}>
+            <span style:width={resolvedFetchProgress + "%"}></span>
         </div>
     {:else if state === "check"}
         <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Downloading"></div>
