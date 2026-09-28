@@ -1,10 +1,55 @@
 <script>
     import { t } from "$lib/i18n/translations";
     import { link, downloadButtonState } from "$lib/state/omnibox";
+    import { queue } from "$lib/state/task-manager/queue";
+    import { currentTasks } from "$lib/state/task-manager/current-tasks";
+    import { getProgress } from "$lib/task-manager/queue";
+    import { savingHandler } from "$lib/api/saving-handler";
 
     import Omnibox from "$components/save/Omnibox.svelte";
     import Meowbalt from "$components/misc/Meowbalt.svelte";
     import SupportedServices from "$components/save/SupportedServices.svelte";
+
+    let retrying = $state(false);
+
+    let activeQueueItem = $derived(
+        Object.values($queue).find((item) => item.originalRequest?.url === $link)
+    );
+
+    let queueProgress = $derived(
+        activeQueueItem?.state === "running"
+            ? Math.round(getProgress(activeQueueItem, $currentTasks) * 100)
+            : activeQueueItem?.state === "done"
+                ? 100
+                : 0
+    );
+
+    let saveState = $derived(
+        activeQueueItem?.state === "error"
+            ? "error"
+            : activeQueueItem?.state === "done"
+                ? "done"
+                : activeQueueItem?.state === "running" || activeQueueItem?.state === "waiting"
+                    ? "think"
+                    : $downloadButtonState
+    );
+
+    const retrySave = async () => {
+        if (retrying || !$link) return;
+
+        retrying = true;
+
+        if (activeQueueItem?.state === "error" && activeQueueItem.originalRequest) {
+            await savingHandler({
+                request: activeQueueItem.originalRequest,
+                oldTaskId: activeQueueItem.id,
+            });
+        } else {
+            await savingHandler({ url: $link });
+        }
+
+        retrying = false;
+    };
 </script>
 
 <svelte:head>
@@ -59,22 +104,38 @@
             </div>
         </main>
 
-        <div class="eb-save-status" class:processing={$downloadButtonState === "think"} class:downloading={$downloadButtonState === "check"} class:complete={$downloadButtonState === "done"} class:error={$downloadButtonState === "error"} aria-live="polite">
-            {#if $downloadButtonState === "think"}
+        <div class="eb-save-status" class:processing={saveState === "think"} class:downloading={saveState === "check"} class:complete={saveState === "done"} class:error={saveState === "error"} aria-live="polite">
+            {#if saveState === "think"}
                 <span class="eb-status-icon">◆</span>
-                <span class="eb-status-copy"><strong>PROCESSING</strong><small>the burrow is figuring it out...</small></span>
-            {:else if $downloadButtonState === "check"}
+                <span class="eb-status-copy">
+                    <strong>PROCESSING</strong>
+                    <small>{activeQueueItem?.state === "running" && queueProgress > 0 ? queueProgress + "% · the burrow is working..." : "the burrow is figuring it out..."}</small>
+                </span>
+            {:else if saveState === "check"}
                 <span class="eb-status-icon">◉</span>
                 <span class="eb-status-copy"><strong>DOWNLOADING</strong><small>bringing it home from the chaos...</small></span>
-            {:else if $downloadButtonState === "done"}
+            {:else if saveState === "done"}
                 <span class="eb-status-icon">✓</span>
                 <span class="eb-status-copy"><strong>COMPLETE</strong><small>successfully burrowed</small></span>
-            {:else if $downloadButtonState === "error"}
+            {:else if saveState === "error"}
                 <span class="eb-status-icon">×</span>
                 <span class="eb-status-copy"><strong>ERROR</strong><small>something exploded in the burrow · please try again</small></span>
+                <button class="eb-retry-button" type="button" onclick={retrySave} disabled={retrying || !$link} aria-label="Retry save">
+                    {retrying ? "RETRYING..." : "RETRY"}
+                </button>
             {:else}
                 <span class="eb-status-icon">●</span>
                 <span class="eb-status-copy"><strong>READY</strong><small>waiting for something chaotic</small></span>
+            {/if}
+
+            {#if saveState === "think" && activeQueueItem?.state === "running"}
+                <div class="eb-progress-track" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={queueProgress}>
+                    <span style:width={queueProgress + "%"}></span>
+                </div>
+            {:else if saveState === "think" && activeQueueItem?.state === "waiting"}
+                <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Waiting to process"></div>
+            {:else if saveState === "check"}
+                <div class="eb-progress-track indeterminate" role="progressbar" aria-label="Downloading"></div>
             {/if}
         </div>    </section>
 
@@ -381,6 +442,66 @@
         font-size: var(--eb-text-xs);
     }
 
+    .eb-retry-button {
+        margin-left: auto;
+        padding: 6px 9px;
+        border: 1px solid rgba(255, 77, 109, 0.3);
+        border-radius: var(--eb-radius-sm);
+        color: var(--eb-danger);
+        background: rgba(255, 77, 109, 0.06);
+        font: inherit;
+        font-size: var(--eb-text-xs);
+        letter-spacing: 0.08em;
+        cursor: pointer;
+    }
+
+    .eb-retry-button:hover:not(:disabled) {
+        border-color: var(--eb-danger);
+        background: rgba(255, 77, 109, 0.12);
+    }
+
+    .eb-retry-button:focus-visible {
+        outline: 2px solid var(--eb-blue);
+        outline-offset: 3px;
+    }
+
+    .eb-retry-button:disabled {
+        cursor: progress;
+        opacity: 0.6;
+    }
+
+    .eb-progress-track {
+        flex: 1 1 100%;
+        min-width: 120px;
+        height: 4px;
+        overflow: hidden;
+        border-radius: var(--eb-radius-pill);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .eb-progress-track span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--eb-pink), var(--eb-blue));
+        transition: width var(--eb-motion-normal) ease;
+    }
+
+    .eb-progress-track.indeterminate::before {
+        content: "";
+        display: block;
+        width: 38%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, transparent, var(--eb-blue), transparent);
+        animation: eb-progress-sweep 1.2s ease-in-out infinite;
+    }
+
+    @keyframes eb-progress-sweep {
+        from { transform: translateX(-130%); }
+        to { transform: translateX(330%); }
+    }
+
     #cobalt-save-container :global(#supported-services) {
         position: relative;
         z-index: 1;
@@ -524,6 +645,11 @@
         .eb-save-status {
             margin-top: 12px;
             padding: 9px 8px;
+            flex-wrap: wrap;
+        }
+
+        .eb-progress-track {
+            flex-basis: 100%;
         }
 
         #cobalt-save-container :global(#supported-services) {
@@ -548,5 +674,15 @@
 
         #cobalt-save :global(#input-container):hover {
             transform: none;
+        }
+
+        .eb-progress-track span {
+            transition: none;
+        }
+
+        .eb-progress-track.indeterminate::before {
+            animation: none;
+            width: 100%;
+            background: var(--eb-blue);
         }
     }</style>
