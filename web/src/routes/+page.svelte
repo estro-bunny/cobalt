@@ -12,7 +12,7 @@
 
     let retrying = $state(false);
 
-    let activeQueueItem = $derived(() => {
+    let activeQueueItem = $derived.by(() => {
         const matchingItems = Object.values($queue)
             .filter((item) => item.originalRequest?.url === $link);
 
