@@ -5,7 +5,7 @@
     import { currentTasks } from "$lib/state/task-manager/current-tasks";
     import { getProgress } from "$lib/task-manager/queue";
     import { savingHandler } from "$lib/api/saving-handler";
-    import { resolveSaveState } from "$lib/save-state.js";
+    import { resolveProcessingLabel, resolveSaveState } from "$lib/save-state.js";
 
     import Omnibox from "$components/save/Omnibox.svelte";
     import Meowbalt from "$components/misc/Meowbalt.svelte";
@@ -159,7 +159,7 @@
             {#if saveState === "think"}
                 <span class="eb-status-icon">◆</span>
                 <span class="eb-status-copy">
-                    <strong>{activeProcessingTask?.type === "encode" ? "ENCODING" : "PROCESSING"}</strong>
+                    <strong>{resolveProcessingLabel(activeProcessingTask?.type)}</strong>
                     <small>{activeQueueItem?.state === "running" && queueProgress > 0 ? queueProgress + "% · the burrow is working..." : "the burrow is figuring it out..."}</small>
                 </span>
             {:else if saveState === "check"}
